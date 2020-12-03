@@ -5,30 +5,10 @@ set -o nounset
 
 saturation=$1
 version=$2
-method=$3
-build_dir=$4
+format=$3
+method=$4
+build_dir=$5
 name=OpenMoji-${saturation^}
-
-case "$method" in
-cbdt)
-  format=.CBDT
-  ;;
-*_colr_0)
-  format=.COLRv0
-  ;;
-*_colr_1)
-  format=.COLRv1
-  ;;
-glyf)
-  format=
-  ;;
-sbix)
-  format=.sbix
-  ;;
-*svg*)
-  format=.SVG
-  ;;
-esac
 
 mkdir -p "$build_dir"
 rsync -ru "/mnt/$saturation/svg/" "$build_dir/scale/"

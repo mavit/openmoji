@@ -11,13 +11,25 @@ build_dir=$5
 name=OpenMoji-${saturation^}
 
 mkdir -p "$build_dir"
+
+to_munge=$(mktemp)
 rsync -ru "/mnt/$saturation/svg/" "$build_dir/scale/"
 grep -FL '<g transform="translate(36 0) scale(1.3) translate(-36 0)">' \
      "$build_dir"/scale/*.svg \
-  | xargs --no-run-if-empty \
-          sed -E -i \
-              -e 's/(<svg .*>)/\1\n<g transform="translate(36 0) scale(1.3) translate(-36 0)">/;' \
-              -e 's/(<\/svg>)/<\/g>\n\1/;'
+     >"$to_munge" \
+  || true
+xargs --no-run-if-empty <"$to_munge" \
+      sed -E -i \
+          -e 's/(<svg .*>)/\1\n<g transform="translate(36 0) scale(1.3) translate(-36 0)">/;' \
+          -e 's/(<\/svg>)/<\/g>\n\1/;'
+xargs --no-run-if-empty <"$to_munge" \
+      xmlstarlet edit \
+                 --inplace \
+                 --omit-decl \
+                 -N svg=http://www.w3.org/2000/svg \
+                 --update '/svg:svg/@viewBox' \
+                 --value '-11 -11 91 91'
+rm "$to_munge"
 
 cat >"$build_dir/$name.toml" <<-EOF
 	output_file = "$build_dir/$name.$method.ttf"
